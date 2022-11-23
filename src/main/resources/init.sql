@@ -1,3 +1,7 @@
+CREATE DATABASE shop_repository;
+
+CREATE SCHEMA shop_storage;
+
 CREATE TABLE IF NOT EXISTS users
 (
     id         BIGSERIAL PRIMARY KEY,
