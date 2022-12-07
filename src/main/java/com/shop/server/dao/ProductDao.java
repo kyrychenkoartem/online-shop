@@ -1,15 +1,13 @@
 package com.shop.server.dao;
 
 import com.shop.server.exception.DaoException;
+import com.shop.server.mapper.extractor.EntityExtractor;
 import com.shop.server.model.dto.ProductFilter;
 import com.shop.server.model.entity.Product;
-import com.shop.server.model.type.Category;
 import com.shop.server.model.type.ErrorResponseStatusType;
-import com.shop.server.model.type.Material;
 import com.shop.server.utils.ConnectionPool;
 import com.shop.server.utils.sql.ProductSql;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -63,13 +61,13 @@ public class ProductDao implements Dao<Long, Product> {
     }
 
     @Override
-    public List<Product> findAll() {
+    public List<Product> findAll(EntityExtractor<Product> extractor) {
         try (var connection = ConnectionPool.get();
              var preparedStatement = connection.prepareStatement(ProductSql.FIND_ALL_SQL)) {
             var resultSet = preparedStatement.executeQuery();
             List<Product> products = new ArrayList<>();
             while (resultSet.next()) {
-                products.add(buildProduct(resultSet));
+                products.add(extractor.extract(resultSet));
             }
             return products;
         } catch (SQLException e) {
@@ -78,7 +76,7 @@ public class ProductDao implements Dao<Long, Product> {
     }
 
 
-    public List<Product> findAll(ProductFilter productFilter) {
+    public List<Product> findAll(ProductFilter productFilter, EntityExtractor<Product> extractor) {
         List<Object> parameters = new ArrayList<>();
         List<String> whereSQL = new ArrayList<>();
         if (productFilter.price() != null) {
@@ -107,7 +105,7 @@ public class ProductDao implements Dao<Long, Product> {
             var resultSet = preparedStatement.executeQuery();
             List<Product> products = new ArrayList<>();
             while (resultSet.next()) {
-                products.add(buildProduct(resultSet));
+                products.add(extractor.extract(resultSet));
             }
             return products;
         } catch (SQLException e) {
@@ -116,21 +114,21 @@ public class ProductDao implements Dao<Long, Product> {
     }
 
     @Override
-    public Optional<Product> findById(Long id) {
+    public Optional<Product> findById(Long id, EntityExtractor<Product> extractor) {
         try (var connection = ConnectionPool.get()) {
-            return findById(id, connection);
+            return findById(id, connection, extractor);
         } catch (SQLException e) {
             throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
         }
     }
 
-    public Optional<Product> findById(Long id, Connection connection) {
+    public Optional<Product> findById(Long id, Connection connection, EntityExtractor<Product> extractor) {
         try (var preparedStatement = connection.prepareStatement(ProductSql.FIND_BY_ID_SQL)) {
             preparedStatement.setLong(1, id);
             var resultSet = preparedStatement.executeQuery();
             Product product = null;
             if (resultSet.next()) {
-                product = buildProduct(resultSet);
+                product = extractor.extract(resultSet);
             }
             return Optional.ofNullable(product);
         } catch (SQLException e) {
@@ -176,15 +174,4 @@ public class ProductDao implements Dao<Long, Product> {
         return INSTANCE;
     }
 
-    private Product buildProduct(ResultSet resultSet) throws SQLException {
-        return Product.builder()
-                .id(resultSet.getLong("id"))
-                .name(resultSet.getString("name"))
-                .description(resultSet.getString("description"))
-                .price(resultSet.getBigDecimal("price"))
-                .quantities(resultSet.getInt("quantities"))
-                .category(Category.valueOf(resultSet.getString("category")))
-                .material(Material.valueOf(resultSet.getString("material")))
-                .build();
-    }
 }

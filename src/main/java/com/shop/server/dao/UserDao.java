@@ -1,15 +1,13 @@
 package com.shop.server.dao;
 
 import com.shop.server.exception.DaoException;
+import com.shop.server.mapper.extractor.EntityExtractor;
 import com.shop.server.model.entity.User;
 import com.shop.server.model.type.ErrorResponseStatusType;
-import com.shop.server.model.type.Gender;
-import com.shop.server.model.type.Role;
 import com.shop.server.utils.ConnectionPool;
 import com.shop.server.utils.sql.UserSql;
 import java.sql.Connection;
 import java.sql.Date;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -67,13 +65,13 @@ public class UserDao implements Dao<Long, User> {
     }
 
     @Override
-    public List<User> findAll() {
+    public List<User> findAll(EntityExtractor<User> extractor) {
         try (var connection = ConnectionPool.get();
              var preparedStatement = connection.prepareStatement(UserSql.FIND_ALL_SQL)) {
             var resultSet = preparedStatement.executeQuery();
             List<User> users = new ArrayList<>();
             while (resultSet.next()) {
-                users.add(buildUser(resultSet));
+                users.add(extractor.extract(resultSet));
             }
             return users;
         } catch (SQLException e) {
@@ -82,21 +80,21 @@ public class UserDao implements Dao<Long, User> {
     }
 
     @Override
-    public Optional<User> findById(Long id) {
+    public Optional<User> findById(Long id, EntityExtractor<User> extractor) {
         try (var connection = ConnectionPool.get()) {
-            return findById(id, connection);
+            return findById(id, connection, extractor);
         } catch (SQLException e) {
             throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
         }
     }
 
-    public Optional<User> findById(Long id, Connection connection) {
+    public Optional<User> findById(Long id, Connection connection, EntityExtractor<User> extractor) {
         try (var preparedStatement = connection.prepareStatement(UserSql.FIND_BY_ID_SQL)) {
             preparedStatement.setLong(1, id);
             var resultSet = preparedStatement.executeQuery();
             User user = null;
             if (resultSet.next()) {
-                user = buildUser(resultSet);
+                user = extractor.extract(resultSet);
             }
             return Optional.ofNullable(user);
         } catch (SQLException e) {
@@ -117,20 +115,5 @@ public class UserDao implements Dao<Long, User> {
 
     public static UserDao getInstance() {
         return INSTANCE;
-    }
-
-    private User buildUser(ResultSet resultSet) throws SQLException {
-        return User.builder()
-                .id(resultSet.getLong("id"))
-                .username(resultSet.getString("username"))
-                .email(resultSet.getString("email"))
-                .birthDate(resultSet.getDate("birth_date").toLocalDate())
-                .firstName(resultSet.getString("first_name"))
-                .lastName(resultSet.getString("last_name"))
-                .role(Role.valueOf(resultSet.getString("role")))
-                .gender(Gender.valueOf(resultSet.getString("gender")))
-                .createdAt(resultSet.getTimestamp("created_at").toLocalDateTime())
-                .createdBy(resultSet.getString("created_by"))
-                .build();
     }
 }

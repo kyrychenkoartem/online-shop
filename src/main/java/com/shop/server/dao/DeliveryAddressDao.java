@@ -1,13 +1,13 @@
 package com.shop.server.dao;
 
 import com.shop.server.exception.DaoException;
+import com.shop.server.mapper.extractor.EntityExtractor;
 import com.shop.server.model.entity.DeliveryAddress;
 import com.shop.server.model.type.ErrorResponseStatusType;
 import com.shop.server.utils.ConnectionPool;
 import com.shop.server.utils.sql.DeliveryAddressSql;
 import com.shop.server.utils.sql.PaymentSql;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -20,7 +20,6 @@ import lombok.NoArgsConstructor;
 public class DeliveryAddressDao implements Dao<Long, DeliveryAddress> {
 
     private static final DeliveryAddressDao INSTANCE = new DeliveryAddressDao();
-    private final OrderDao orderDao = OrderDao.getInstance();
 
     @Override
     public DeliveryAddress save(DeliveryAddress address) {
@@ -58,13 +57,13 @@ public class DeliveryAddressDao implements Dao<Long, DeliveryAddress> {
     }
 
     @Override
-    public List<DeliveryAddress> findAll() {
+    public List<DeliveryAddress> findAll(EntityExtractor<DeliveryAddress> extractor) {
         try (var connection = ConnectionPool.get();
              var preparedStatement = connection.prepareStatement(PaymentSql.FIND_ALL_SQL)) {
             var resultSet = preparedStatement.executeQuery();
             List<DeliveryAddress> deliveryAddresses = new ArrayList<>();
             while (resultSet.next()) {
-                deliveryAddresses.add(buildAddress(resultSet));
+                deliveryAddresses.add(extractor.extract(resultSet));
             }
             return deliveryAddresses;
         } catch (SQLException e) {
@@ -73,21 +72,21 @@ public class DeliveryAddressDao implements Dao<Long, DeliveryAddress> {
     }
 
     @Override
-    public Optional<DeliveryAddress> findById(Long id) {
+    public Optional<DeliveryAddress> findById(Long id, EntityExtractor<DeliveryAddress> extractor) {
         try (var connection = ConnectionPool.get()) {
-            return findById(id, connection);
+            return findById(id, connection, extractor);
         } catch (SQLException e) {
             throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
         }
     }
 
-    public Optional<DeliveryAddress> findById(Long id, Connection connection) {
+    public Optional<DeliveryAddress> findById(Long id, Connection connection, EntityExtractor<DeliveryAddress> extractor) {
         try (var preparedStatement = connection.prepareStatement(DeliveryAddressSql.FIND_BY_ID_SQL)) {
             preparedStatement.setLong(1, id);
             var resultSet = preparedStatement.executeQuery();
             DeliveryAddress deliveryAddress = null;
             if (resultSet.next()) {
-                deliveryAddress = buildAddress(resultSet);
+                deliveryAddress = extractor.extract(resultSet);
             }
             return Optional.ofNullable(deliveryAddress);
         } catch (SQLException e) {
@@ -110,16 +109,4 @@ public class DeliveryAddressDao implements Dao<Long, DeliveryAddress> {
         return INSTANCE;
     }
 
-    private DeliveryAddress buildAddress(ResultSet resultSet) throws SQLException {
-        return DeliveryAddress.builder()
-                .id(resultSet.getLong("id"))
-                .order(orderDao.findById(resultSet.getLong("orders_id"),
-                                resultSet.getStatement().getConnection())
-                        .orElseThrow(() -> new DaoException(ErrorResponseStatusType.DAO_EXCEPTION)))
-                .address(resultSet.getString("address"))
-                .city(resultSet.getString("city"))
-                .province(resultSet.getString("province"))
-                .postalCode(resultSet.getString("postal_code"))
-                .build();
-    }
 }

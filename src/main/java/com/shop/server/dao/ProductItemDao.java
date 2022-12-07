@@ -1,13 +1,12 @@
 package com.shop.server.dao;
 
-import com.shop.server.exception.ConnectionException;
 import com.shop.server.exception.DaoException;
+import com.shop.server.mapper.extractor.EntityExtractor;
 import com.shop.server.model.entity.ProductItem;
 import com.shop.server.model.type.ErrorResponseStatusType;
 import com.shop.server.utils.ConnectionPool;
 import com.shop.server.utils.sql.ProductItemSql;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -20,9 +19,6 @@ import lombok.NoArgsConstructor;
 public class ProductItemDao implements Dao<Long, ProductItem> {
 
     private static final ProductItemDao INSTANCE = new ProductItemDao();
-
-    private final ProductDao productDao = ProductDao.getInstance();
-
 
     @Override
     public ProductItem save(ProductItem productItem) {
@@ -55,13 +51,13 @@ public class ProductItemDao implements Dao<Long, ProductItem> {
     }
 
     @Override
-    public List<ProductItem> findAll() {
+    public List<ProductItem> findAll(EntityExtractor<ProductItem> extractor) {
         try (var connection = ConnectionPool.get();
              var preparedStatement = connection.prepareStatement(ProductItemSql.FIND_ALL_SQL)) {
             var resultSet = preparedStatement.executeQuery();
             List<ProductItem> productItems = new ArrayList<>();
             while (resultSet.next()) {
-                productItems.add(buildProductItem(resultSet));
+                productItems.add(extractor.extract(resultSet));
             }
             return productItems;
         } catch (SQLException e) {
@@ -70,21 +66,21 @@ public class ProductItemDao implements Dao<Long, ProductItem> {
     }
 
     @Override
-    public Optional<ProductItem> findById(Long id) {
+    public Optional<ProductItem> findById(Long id, EntityExtractor<ProductItem> extractor) {
         try (var connection = ConnectionPool.get()) {
-            return findById(id, connection);
+            return findById(id, connection, extractor);
         } catch (SQLException e) {
             throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
         }
     }
 
-    public Optional<ProductItem> findById(Long id, Connection connection) {
+    public Optional<ProductItem> findById(Long id, Connection connection, EntityExtractor<ProductItem> extractor) {
         try (var preparedStatement = connection.prepareStatement(ProductItemSql.FIND_BY_ID_SQL)) {
             preparedStatement.setLong(1, id);
             var resultSet = preparedStatement.executeQuery();
             ProductItem productItem = null;
             if (resultSet.next()) {
-                productItem = buildProductItem(resultSet);
+                productItem = extractor.extract(resultSet);
             }
             return Optional.ofNullable(productItem);
         } catch (SQLException e) {
@@ -107,13 +103,4 @@ public class ProductItemDao implements Dao<Long, ProductItem> {
         return INSTANCE;
     }
 
-    private ProductItem buildProductItem(ResultSet resultSet) throws SQLException {
-        return ProductItem.builder()
-                .id(resultSet.getLong("id"))
-                .product(productDao.findById(resultSet.getLong("product_id"),
-                                resultSet.getStatement().getConnection())
-                        .orElseThrow(() -> new ConnectionException(ErrorResponseStatusType.DAO_EXCEPTION)))
-                .count(resultSet.getInt("count"))
-                .build();
-    }
 }

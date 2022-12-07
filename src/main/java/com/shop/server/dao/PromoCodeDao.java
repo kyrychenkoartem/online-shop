@@ -1,12 +1,12 @@
 package com.shop.server.dao;
 
 import com.shop.server.exception.DaoException;
+import com.shop.server.mapper.extractor.EntityExtractor;
 import com.shop.server.model.entity.PromoCode;
 import com.shop.server.model.type.ErrorResponseStatusType;
 import com.shop.server.utils.ConnectionPool;
 import com.shop.server.utils.sql.PromoCodeSql;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -51,13 +51,13 @@ public class PromoCodeDao implements Dao<Long, PromoCode> {
     }
 
     @Override
-    public List<PromoCode> findAll() {
+    public List<PromoCode> findAll(EntityExtractor<PromoCode> extractor) {
         try (var connection = ConnectionPool.get();
              var preparedStatement = connection.prepareStatement(PromoCodeSql.FIND_ALL_SQL)) {
             var resultSet = preparedStatement.executeQuery();
             List<PromoCode> promoCodes = new ArrayList<>();
             while (resultSet.next()) {
-                promoCodes.add(buildPromoCode(resultSet));
+                promoCodes.add(extractor.extract(resultSet));
             }
             return promoCodes;
         } catch (SQLException e) {
@@ -66,21 +66,21 @@ public class PromoCodeDao implements Dao<Long, PromoCode> {
     }
 
     @Override
-    public Optional<PromoCode> findById(Long id) {
+    public Optional<PromoCode> findById(Long id, EntityExtractor<PromoCode> extractor) {
         try (var connection = ConnectionPool.get()) {
-            return findById(id, connection);
+            return findById(id, connection, extractor);
         } catch (SQLException e) {
             throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
         }
     }
 
-    public Optional<PromoCode> findById(Long id, Connection connection) {
+    public Optional<PromoCode> findById(Long id, Connection connection, EntityExtractor<PromoCode> extractor) {
         try (var preparedStatement = connection.prepareStatement(PromoCodeSql.FIND_BY_ID_SQL)) {
             preparedStatement.setLong(1, id);
             var resultSet = preparedStatement.executeQuery();
             PromoCode promoCode = null;
             if (resultSet.next()) {
-                promoCode = buildPromoCode(resultSet);
+                promoCode = extractor.extract(resultSet);
             }
             return Optional.ofNullable(promoCode);
         } catch (SQLException e) {
@@ -103,11 +103,4 @@ public class PromoCodeDao implements Dao<Long, PromoCode> {
         return INSTANCE;
     }
 
-    private PromoCode buildPromoCode(ResultSet resultSet) throws SQLException {
-        return PromoCode.builder()
-                .id(resultSet.getLong("id"))
-                .key(resultSet.getString("key"))
-                .value(resultSet.getInt("value"))
-                .build();
-    }
 }

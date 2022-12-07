@@ -1,13 +1,12 @@
 package com.shop.server.dao;
 
-import com.shop.server.exception.ConnectionException;
 import com.shop.server.exception.DaoException;
+import com.shop.server.mapper.extractor.EntityExtractor;
 import com.shop.server.model.entity.Cart;
 import com.shop.server.model.type.ErrorResponseStatusType;
 import com.shop.server.utils.ConnectionPool;
 import com.shop.server.utils.sql.CartSql;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -20,8 +19,6 @@ import lombok.NoArgsConstructor;
 public class CartDao implements Dao<Long, Cart> {
 
     private static final CartDao INSTANCE = new CartDao();
-    private final ProductItemDao productItemDao = ProductItemDao.getInstance();
-    private final PromoCodeDao promoCodeDao = PromoCodeDao.getInstance();
 
     @Override
     public Cart save(Cart cart) {
@@ -56,13 +53,13 @@ public class CartDao implements Dao<Long, Cart> {
     }
 
     @Override
-    public List<Cart> findAll() {
+    public List<Cart> findAll(EntityExtractor<Cart> extractor) {
         try (var connection = ConnectionPool.get();
              var preparedStatement = connection.prepareStatement(CartSql.FIND_ALL_SQL)) {
             var resultSet = preparedStatement.executeQuery();
             List<Cart> carts = new ArrayList<>();
             while (resultSet.next()) {
-                carts.add(buildCart(resultSet));
+                carts.add(extractor.extract(resultSet));
             }
             return carts;
         } catch (SQLException e) {
@@ -71,21 +68,21 @@ public class CartDao implements Dao<Long, Cart> {
     }
 
     @Override
-    public Optional<Cart> findById(Long id) {
+    public Optional<Cart> findById(Long id, EntityExtractor<Cart> extractor) {
         try (var connection = ConnectionPool.get()) {
-            return findById(id, connection);
+            return findById(id, connection, extractor);
         } catch (SQLException e) {
             throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
         }
     }
 
-    public Optional<Cart> findById(Long id, Connection connection) {
+    public Optional<Cart> findById(Long id, Connection connection, EntityExtractor<Cart> extractor) {
         try (var preparedStatement = connection.prepareStatement(CartSql.FIND_BY_ID_SQL)) {
             preparedStatement.setLong(1, id);
             var resultSet = preparedStatement.executeQuery();
             Cart cart = null;
             if (resultSet.next()) {
-                cart = buildCart(resultSet);
+                cart = extractor.extract(resultSet);
             }
             return Optional.ofNullable(cart);
         } catch (SQLException e) {
@@ -108,16 +105,4 @@ public class CartDao implements Dao<Long, Cart> {
         return INSTANCE;
     }
 
-    private Cart buildCart(ResultSet resultSet) throws SQLException {
-        return Cart.builder()
-                .id(resultSet.getLong("id"))
-                .productItem(productItemDao.findById(resultSet.getLong("product_item_id"),
-                                resultSet.getStatement().getConnection())
-                        .orElseThrow(() -> new ConnectionException(ErrorResponseStatusType.DAO_EXCEPTION)))
-                .price(resultSet.getBigDecimal("price"))
-                .promoCode(promoCodeDao.findById(resultSet.getLong("promo_code_id"),
-                                resultSet.getStatement().getConnection())
-                        .orElseThrow(() -> new ConnectionException(ErrorResponseStatusType.DAO_EXCEPTION)))
-                .build();
-    }
 }
