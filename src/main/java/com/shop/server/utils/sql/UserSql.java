@@ -48,4 +48,8 @@ public final class UserSql {
     public static final String FIND_BY_ID_SQL = FIND_ALL_SQL + """
             WHERE id = ?
             """;
+
+    public static final String FIND_BY_EMAIL_SQL = FIND_ALL_SQL + """
+            WHERE email = ?
+            """;
 }

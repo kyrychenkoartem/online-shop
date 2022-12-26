@@ -50,6 +50,17 @@ public class PromoCodeDao implements Dao<Long, PromoCode> {
         }
     }
 
+    public void updateValue(PromoCode promoCode) {
+        try (var connection = ConnectionPool.get();
+             var preparedStatement = connection.prepareStatement(PromoCodeSql.UPDATE_VALUE_SQL)) {
+            preparedStatement.setInt(1, promoCode.getValue());
+            preparedStatement.setString(2, promoCode.getKey());
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
     @Override
     public List<PromoCode> findAll(EntityExtractor<PromoCode> extractor) {
         try (var connection = ConnectionPool.get();
@@ -77,6 +88,28 @@ public class PromoCodeDao implements Dao<Long, PromoCode> {
     public Optional<PromoCode> findById(Long id, Connection connection, EntityExtractor<PromoCode> extractor) {
         try (var preparedStatement = connection.prepareStatement(PromoCodeSql.FIND_BY_ID_SQL)) {
             preparedStatement.setLong(1, id);
+            var resultSet = preparedStatement.executeQuery();
+            PromoCode promoCode = null;
+            if (resultSet.next()) {
+                promoCode = extractor.extract(resultSet);
+            }
+            return Optional.ofNullable(promoCode);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public Optional<PromoCode> findByKey(String key, EntityExtractor<PromoCode> extractor) {
+        try (var connection = ConnectionPool.get()) {
+            return findByKey(key, connection, extractor);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public Optional<PromoCode> findByKey(String key, Connection connection, EntityExtractor<PromoCode> extractor) {
+        try (var preparedStatement = connection.prepareStatement(PromoCodeSql.FIND_BY_KEY_SQL)) {
+            preparedStatement.setString(1, key);
             var resultSet = preparedStatement.executeQuery();
             PromoCode promoCode = null;
             if (resultSet.next()) {

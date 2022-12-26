@@ -30,13 +30,6 @@ CREATE TABLE IF NOT EXISTS product
     material    VARCHAR(64)  NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS product_item
-(
-    id         BIGSERIAL PRIMARY KEY,
-    product_id BIGSERIAL REFERENCES product (id) ON DELETE CASCADE,
-    count      INT NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS promo_code
 (
     id    BIGSERIAL PRIMARY KEY,
@@ -46,10 +39,17 @@ CREATE TABLE IF NOT EXISTS promo_code
 
 CREATE TABLE IF NOT EXISTS cart
 (
-    id              BIGSERIAL PRIMARY KEY,
-    product_item_id BIGSERIAL REFERENCES product_item (id) ON DELETE CASCADE,
-    price           NUMERIC NOT NULL,
-    promo_code_id   BIGSERIAL REFERENCES promo_code (id) ON DELETE CASCADE
+    id            BIGSERIAL PRIMARY KEY,
+    price         NUMERIC NOT NULL,
+    promo_code_id BIGSERIAL UNIQUE REFERENCES promo_code (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS product_item
+(
+    id         BIGSERIAL PRIMARY KEY,
+    product_id BIGSERIAL UNIQUE REFERENCES product (id) ON DELETE CASCADE,
+    count      INT NOT NULL,
+    cart_id    BIGSERIAL REFERENCES cart (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS orders

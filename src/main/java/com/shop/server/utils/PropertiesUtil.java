@@ -3,17 +3,16 @@ package com.shop.server.utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PropertiesUtil {
 
     private static final Properties PROPERTIES = new Properties();
 
     static {
         loadProperties();
-    }
-
-
-    private PropertiesUtil() {
     }
 
     public static String get(String key) {
@@ -27,6 +26,4 @@ public final class PropertiesUtil {
             throw new RuntimeException(e);
         }
     }
-
-
 }

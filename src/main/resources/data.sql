@@ -244,34 +244,23 @@ VALUES ('Tome Hoops', 'A tubular, chubby hoop with rounded ends and a custom JB 
         'Simple yet striking. This best selling, vintage-inspired bangle brings a finishing touch to your wrist', 77.00,
         53, 'BRACELETS', 'HAND_PAINTED');
 
-INSERT INTO product_item (product_id, count)
-VALUES (1, 2),
-       (21, 2),
-       (41, 2),
-       (61, 1);
-
 INSERT INTO bank_card (users_id, card_number, expiry_date, bank, cvv, card_type)
 VALUES (1, '1234567890234567', '10/27', 'Bank1', '123', 'DEBIT'),
        (2, '3456789034567890', '11/27', 'Bank2', '456', 'CREDIT'),
        (3, '9876543219876543', '12/27', 'Bank3', '789', 'GIFT');
 
-INSERT INTO cart (product_item_id, price, promo_code_id)
-VALUES (1, (SELECT p.price
-            FROM product_item pi
-                     JOIN product p on p.id = pi.product_id
-            WHERE pi.id = 1) * (SELECT count FROM product_item WHERE id = 1), 1),
-       (2, (SELECT p.price
-            FROM product_item pi
-                     JOIN product p on p.id = pi.product_id
-            WHERE pi.id = 1) * (SELECT count FROM product_item WHERE id = 2), 2),
-       (3, (SELECT p.price
-            FROM product_item pi
-                     JOIN product p on p.id = pi.product_id
-            WHERE pi.id = 1) * (SELECT count FROM product_item WHERE id = 3), 3),
-       (4, (SELECT p.price
-            FROM product_item pi
-                     JOIN product p on p.id = pi.product_id
-            WHERE pi.id = 1) * (SELECT count FROM product_item WHERE id = 4), 4);
+INSERT INTO cart (price, promo_code_id)
+VALUES (252.00, 1),
+       (170.00, 2),
+       (128.00, 3),
+       (173.25, 4);
+
+INSERT INTO product_item (product_id, count, cart_id)
+VALUES (1, 2, 1),
+       (21, 2, 2),
+       (41, 2, 3),
+       (61, 1, 1),
+       (80, 3, 4);
 
 INSERT INTO orders (cart_id, users_id, created_at, closed_at, status)
 VALUES (1, 1, now(), null, 'PROCESSING'),

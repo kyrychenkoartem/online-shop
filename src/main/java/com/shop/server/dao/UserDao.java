@@ -102,6 +102,21 @@ public class UserDao implements Dao<Long, User> {
         }
     }
 
+    public Optional<User> findByEmail(String email, EntityExtractor<User> extractor) {
+        try (var connection = ConnectionPool.get();
+             var preparedStatement = connection.prepareStatement(UserSql.FIND_BY_EMAIL_SQL)) {
+            preparedStatement.setString(1, email);
+            var resultSet = preparedStatement.executeQuery();
+            User user = null;
+            if (resultSet.next()) {
+                user = extractor.extract(resultSet);
+            }
+            return Optional.ofNullable(user);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
     @Override
     public boolean delete(Long id) {
         try (var connection = ConnectionPool.get();

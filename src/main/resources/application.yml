@@ -1,0 +1,6 @@
+db:
+  url: jdbc:postgresql://localhost:5432/shop_repository?currentSchema=shop_storage
+  username: postgres
+  password: postgres
+  pool:
+    size: 20

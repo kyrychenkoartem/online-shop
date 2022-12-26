@@ -2,12 +2,13 @@ package com.shop.server.dao;
 
 import com.shop.server.exception.DaoException;
 import com.shop.server.mapper.extractor.EntityExtractor;
-import com.shop.server.model.dto.ProductFilter;
+import com.shop.server.model.dto.product.ProductFilter;
 import com.shop.server.model.entity.Product;
 import com.shop.server.model.type.ErrorResponseStatusType;
 import com.shop.server.utils.ConnectionPool;
 import com.shop.server.utils.sql.ProductSql;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -75,24 +76,27 @@ public class ProductDao implements Dao<Long, Product> {
         }
     }
 
-
     public List<Product> findAll(ProductFilter productFilter, EntityExtractor<Product> extractor) {
         List<Object> parameters = new ArrayList<>();
         List<String> whereSQL = new ArrayList<>();
-        if (productFilter.price() != null) {
+        if (productFilter.getName() != null) {
+            whereSQL.add("name = ?");
+            parameters.add(productFilter.getName());
+        }
+        if (productFilter.getPrice() != null) {
             whereSQL.add("price LIKE ?");
-            parameters.add("%" + productFilter.price() + "%");
+            parameters.add("%" + productFilter.getPrice() + "%");
         }
-        if (productFilter.category() != null) {
+        if (productFilter.getCategory() != null) {
             whereSQL.add("category = ?");
-            parameters.add(productFilter.category().name());
+            parameters.add(productFilter.getCategory().name());
         }
-        if (productFilter.material() != null) {
+        if (productFilter.getMaterial() != null) {
             whereSQL.add("material = ?");
-            parameters.add(productFilter.material().name());
+            parameters.add(productFilter.getMaterial().name());
         }
-        parameters.add(productFilter.limit());
-        parameters.add(productFilter.offset());
+        parameters.add(productFilter.getLimit());
+        parameters.add(productFilter.getOffset());
         var where = whereSQL.stream()
                 .collect(joining(" AND ", "WHERE ", " LIMIT ? OFFSET ? "));
         var sql = ProductSql.FIND_ALL_SQL + where;
@@ -136,10 +140,16 @@ public class ProductDao implements Dao<Long, Product> {
         }
     }
 
-
     public boolean updatePrice(Product product) {
-        try (var connection = ConnectionPool.get();
-             var preparedStatement = connection.prepareStatement(ProductSql.UPDATE_PRICE_SQL)) {
+        try (var connection = ConnectionPool.get()) {
+            return updatePrice(product, connection);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public boolean updatePrice(Product product, Connection connection) {
+        try (var preparedStatement = connection.prepareStatement(ProductSql.UPDATE_PRICE_SQL)) {
             preparedStatement.setBigDecimal(1, product.getPrice());
             preparedStatement.setLong(2, product.getId());
             return preparedStatement.executeUpdate() > 0;
@@ -149,8 +159,15 @@ public class ProductDao implements Dao<Long, Product> {
     }
 
     public boolean updateQuantities(Product product) {
-        try (var connection = ConnectionPool.get();
-             var preparedStatement = connection.prepareStatement(ProductSql.UPDATE_QUANTITIES_SQL)) {
+        try (var connection = ConnectionPool.get()) {
+            return updateQuantities(product, connection);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public boolean updateQuantities(Product product, Connection connection) {
+        try (var preparedStatement = connection.prepareStatement(ProductSql.UPDATE_QUANTITIES_SQL)) {
             preparedStatement.setInt(1, product.getQuantities());
             preparedStatement.setLong(2, product.getId());
             return preparedStatement.executeUpdate() > 0;
@@ -159,12 +176,71 @@ public class ProductDao implements Dao<Long, Product> {
         }
     }
 
+    public boolean takeProduct(Long id, Integer quantities) {
+        try (var connection = ConnectionPool.get()) {
+            return takeProduct(id, quantities, connection);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public boolean takeProduct(Long id, Integer quantities, Connection connection) {
+        try (var preparedStatement = connection.prepareStatement(ProductSql.TAKE_QUANTITIES_SQL)) {
+            preparedStatement.setInt(1, quantities);
+            preparedStatement.setLong(2, id);
+            return preparedStatement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public boolean putProduct(Long id, Integer quantities) {
+        try (var connection = ConnectionPool.get()) {
+            return putProduct(id, quantities, connection);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public boolean putProduct(Long id, Integer quantities, Connection connection) {
+        try (var preparedStatement = connection.prepareStatement(ProductSql.PUT_QUANTITIES_SQL)) {
+            preparedStatement.setInt(1, quantities);
+            preparedStatement.setLong(2, id);
+            return preparedStatement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+
     @Override
     public boolean delete(Long id) {
         try (var connection = ConnectionPool.get();
              var preparedStatement = connection.prepareStatement(ProductSql.DELETE_SQL)) {
             preparedStatement.setLong(1, id);
             return preparedStatement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public boolean isProductQuantitiesEnough(Long id, Integer quantities) {
+        try (var connection = ConnectionPool.get()) {
+            return isProductQuantitiesEnough(id, quantities, connection);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public boolean isProductQuantitiesEnough(Long id, Integer quantities, Connection connection) {
+        try (var preparedStatement = connection.prepareStatement(ProductSql.CHECK_QUANTITIES_SQL)) {
+            preparedStatement.setLong(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            int productQuantities = 0;
+            while (resultSet.next()) {
+                productQuantities = resultSet.getInt("quantities");
+            }
+            return productQuantities > quantities || productQuantities > 0;
         } catch (SQLException e) {
             throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
         }
