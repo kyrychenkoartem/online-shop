@@ -11,6 +11,23 @@ public final class UserSql {
             WHERE id = ?
             """;
 
+    public static final String FIND_BY_EMAIL_AND_PASSWORD = """
+            SELECT 
+            id,
+            username,
+            email,
+            birth_date,
+            first_name,
+            last_name,
+            role,
+            gender,
+            created_at,
+            created_by
+            FROM users
+            WHERE email = ?
+            AND password = ?
+            """;
+
     public static final String SAVE_SQL = """
             INSERT INTO users (username, email, password, birth_date, first_name,
             last_name, role, gender, created_at, created_by, updated_at, updated_by)
@@ -47,5 +64,9 @@ public final class UserSql {
 
     public static final String FIND_BY_ID_SQL = FIND_ALL_SQL + """
             WHERE id = ?
+            """;
+
+    public static final String FIND_BY_EMAIL_SQL = FIND_ALL_SQL + """
+            WHERE email = ?
             """;
 }

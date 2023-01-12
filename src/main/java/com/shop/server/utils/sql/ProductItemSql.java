@@ -12,8 +12,8 @@ public final class ProductItemSql {
             """;
 
     public static final String SAVE_SQL = """
-            INSERT INTO product_item (product_id, count)
-            VALUES (?, ?)
+            INSERT INTO product_item (product_id, count, cart_id)
+            VALUES (?, ?, ?)
             """;
 
     public static final String UPDATE_SQL = """
@@ -28,11 +28,12 @@ public final class ProductItemSql {
             SELECT 
             id,
             product_id,
-            count
+            count,
+            cart_id
             FROM product_item
             """;
 
     public static final String FIND_BY_ID_SQL = FIND_ALL_SQL + """
-            WHERE product_item.id = ?
+            WHERE id = ?
             """;
 }

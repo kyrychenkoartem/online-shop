@@ -57,4 +57,24 @@ public final class ProductSql {
     public static final String FIND_BY_ID_SQL = FIND_ALL_SQL + """
             WHERE id = ?
             """;
+
+    public static final String TAKE_QUANTITIES_SQL = """
+            UPDATE product
+            SET 
+            quantities = quantities - ?
+            WHERE id = ?
+            """;
+
+    public static final String PUT_QUANTITIES_SQL = """
+            UPDATE product
+            set 
+            quantities = quantities + ?
+            WHERE id = ?
+            """;
+
+    public static final String CHECK_QUANTITIES_SQL = """
+            SELECT quantities
+            FROM product
+            WHERE id = ?
+            """;
 }

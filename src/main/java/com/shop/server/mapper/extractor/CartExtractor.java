@@ -4,9 +4,13 @@ import com.shop.server.dao.ProductItemDao;
 import com.shop.server.dao.PromoCodeDao;
 import com.shop.server.exception.ConnectionException;
 import com.shop.server.model.entity.Cart;
+import com.shop.server.model.entity.ProductItem;
 import com.shop.server.model.type.ErrorResponseStatusType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -14,7 +18,6 @@ import lombok.NoArgsConstructor;
 public class CartExtractor implements EntityExtractor<Cart> {
 
     private static final CartExtractor INSTANCE = new CartExtractor();
-
     private final ProductItemDao productItemDao = ProductItemDao.getInstance();
     private final PromoCodeDao promoCodeDao = PromoCodeDao.getInstance();
     private final ProductItemExtractor itemExtractor = ProductItemExtractor.getExtractor();
@@ -24,10 +27,10 @@ public class CartExtractor implements EntityExtractor<Cart> {
     public Cart extract(ResultSet resultSet) throws SQLException {
         return Cart.builder()
                 .id(resultSet.getLong("id"))
-                .productItem(productItemDao.findById(resultSet.getLong("product_item_id"),
+                .productItems(List.of(productItemDao.findById(resultSet.getObject(2, Long.class),
                                 resultSet.getStatement().getConnection(),
                                 itemExtractor)
-                        .orElseThrow(() -> new ConnectionException(ErrorResponseStatusType.DAO_EXCEPTION)))
+                        .orElseThrow(() -> new ConnectionException(ErrorResponseStatusType.DAO_EXCEPTION))))
                 .price(resultSet.getBigDecimal("price"))
                 .promoCode(promoCodeDao.findById(resultSet.getLong("promo_code_id"),
                                 resultSet.getStatement().getConnection(),

@@ -23,8 +23,15 @@ public class DeliveryAddressDao implements Dao<Long, DeliveryAddress> {
 
     @Override
     public DeliveryAddress save(DeliveryAddress address) {
-        try (var connection = ConnectionPool.get();
-             var preparedStatement = connection.prepareStatement(DeliveryAddressSql.SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
+        try (var connection = ConnectionPool.get()) {
+            return save(address, connection);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public DeliveryAddress save(DeliveryAddress address, Connection connection) {
+        try (var preparedStatement = connection.prepareStatement(DeliveryAddressSql.SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setLong(1, address.getOrder().getId());
             preparedStatement.setString(2, address.getAddress());
             preparedStatement.setString(3, address.getCity());

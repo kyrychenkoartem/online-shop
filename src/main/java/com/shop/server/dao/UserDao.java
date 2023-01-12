@@ -88,9 +88,47 @@ public class UserDao implements Dao<Long, User> {
         }
     }
 
+    public Optional<User> findByEmailAndPassword(String email, String password, EntityExtractor<User> extractor) {
+        try (var connection = ConnectionPool.get()) {
+            return findByEmailAndPassword(email, password, connection, extractor);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public Optional<User> findByEmailAndPassword(String email, String password, Connection connection, EntityExtractor<User> extractor) {
+        try (var preparedStatement = connection.prepareStatement(UserSql.FIND_BY_EMAIL_AND_PASSWORD)) {
+            preparedStatement.setString(1, email);
+            preparedStatement.setString(2, password);
+            var resultSet = preparedStatement.executeQuery();
+            User user = null;
+            if (resultSet.next()) {
+                user = extractor.extract(resultSet);
+            }
+            return Optional.ofNullable(user);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
     public Optional<User> findById(Long id, Connection connection, EntityExtractor<User> extractor) {
         try (var preparedStatement = connection.prepareStatement(UserSql.FIND_BY_ID_SQL)) {
             preparedStatement.setLong(1, id);
+            var resultSet = preparedStatement.executeQuery();
+            User user = null;
+            if (resultSet.next()) {
+                user = extractor.extract(resultSet);
+            }
+            return Optional.ofNullable(user);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public Optional<User> findByEmail(String email, EntityExtractor<User> extractor) {
+        try (var connection = ConnectionPool.get();
+             var preparedStatement = connection.prepareStatement(UserSql.FIND_BY_EMAIL_SQL)) {
+            preparedStatement.setString(1, email);
             var resultSet = preparedStatement.executeQuery();
             User user = null;
             if (resultSet.next()) {

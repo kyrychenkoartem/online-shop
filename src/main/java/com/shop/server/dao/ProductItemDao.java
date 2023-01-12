@@ -22,8 +22,15 @@ public class ProductItemDao implements Dao<Long, ProductItem> {
 
     @Override
     public ProductItem save(ProductItem productItem) {
-        try (var connection = ConnectionPool.get();
-             var preparedStatement = connection.prepareStatement(ProductItemSql.SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
+        try (var connection = ConnectionPool.get()) {
+            return save(productItem, connection);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public ProductItem save(ProductItem productItem, Connection connection) {
+        try (var preparedStatement = connection.prepareStatement(ProductItemSql.SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setLong(1, productItem.getProduct().getId());
             preparedStatement.setInt(2, productItem.getCount());
             preparedStatement.executeUpdate();
@@ -37,10 +44,33 @@ public class ProductItemDao implements Dao<Long, ProductItem> {
         }
     }
 
+    public ProductItem save(ProductItem productItem, Long cartId, Connection connection) {
+        try (var preparedStatement = connection.prepareStatement(ProductItemSql.SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setLong(1, productItem.getProduct().getId());
+            preparedStatement.setInt(2, productItem.getCount());
+            preparedStatement.setLong(3, cartId);
+            preparedStatement.executeUpdate();
+            var generatedKeys = preparedStatement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                productItem.setId(generatedKeys.getLong("id"));
+            }
+            return productItem;
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
     @Override
     public void update(ProductItem productItem) {
-        try (var connection = ConnectionPool.get();
-             var preparedStatement = connection.prepareStatement(ProductItemSql.UPDATE_SQL)) {
+        try (var connection = ConnectionPool.get()) {
+            update(productItem, connection);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public void update(ProductItem productItem, Connection connection) {
+        try (var preparedStatement = connection.prepareStatement(ProductItemSql.UPDATE_SQL)) {
             preparedStatement.setLong(1, productItem.getProduct().getId());
             preparedStatement.setInt(2, productItem.getCount());
             preparedStatement.setLong(3, productItem.getId());
@@ -90,8 +120,15 @@ public class ProductItemDao implements Dao<Long, ProductItem> {
 
     @Override
     public boolean delete(Long id) {
-        try (var connection = ConnectionPool.get();
-             var preparedStatement = connection.prepareStatement(ProductItemSql.DELETE_SQL)) {
+        try (var connection = ConnectionPool.get()) {
+            return delete(id, connection);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public boolean delete(Long id, Connection connection) {
+        try (var preparedStatement = connection.prepareStatement(ProductItemSql.DELETE_SQL)) {
             preparedStatement.setLong(1, id);
             return preparedStatement.executeUpdate() > 0;
         } catch (SQLException e) {

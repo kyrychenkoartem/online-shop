@@ -24,6 +24,13 @@ public final class PromoCodeSql {
             WHERE id = ?
             """;
 
+    public static final String UPDATE_VALUE_SQL = """
+            UPDATE promo_code
+            SET 
+            value = ?
+            WHERE key = ?
+            """;
+
     public static final String FIND_ALL_SQL = """
             SELECT 
             id, 
@@ -34,5 +41,9 @@ public final class PromoCodeSql {
 
     public static final String FIND_BY_ID_SQL = FIND_ALL_SQL + """
             WHERE id = ?
+            """;
+
+    public static final String FIND_BY_KEY_SQL = FIND_ALL_SQL + """
+            WHERE key = ?
             """;
 }

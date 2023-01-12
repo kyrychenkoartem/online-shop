@@ -43,4 +43,23 @@ public final class BankCardSql {
     public static final String FIND_BY_ID_SQL = FIND_ALL_SQL + """
             WHERE id = ?
             """;
+
+    public static final String FIND_BY_USER_ID_SQL = """
+            SELECT 
+            bc.id,
+            bc.users_id,
+            bc.card_number,
+            bc.expiry_date,
+            bc.bank,
+            bc.cvv,
+            bc.card_type
+            FROM bank_card bc 
+            JOIN users u on u.id = bc.users_id
+            WHERE bc.users_id = ?
+            AND bc.card_number = ?
+            AND bc.expiry_date = ?
+            AND bc.bank = ?
+            AND bc.cvv = ?
+            AND bc.card_type = ?
+            """;
 }
