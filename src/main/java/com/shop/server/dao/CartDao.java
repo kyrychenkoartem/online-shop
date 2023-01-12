@@ -23,6 +23,8 @@ import org.apache.commons.lang3.ObjectUtils;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CartDao implements Dao<Long, Cart> {
 
+    private static final Long DEFAULT_PROMO_CODE_ID = 1L;
+
     private static final CartDao INSTANCE = new CartDao();
 
     @Override
@@ -37,7 +39,7 @@ public class CartDao implements Dao<Long, Cart> {
     public Cart save(Cart cart, Connection connection) {
         try (var preparedStatement = connection.prepareStatement(CartSql.SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setBigDecimal(1, cart.getPrice());
-            preparedStatement.setLong(2, cart.getPromoCode().getId());
+            preparedStatement.setLong(2, DEFAULT_PROMO_CODE_ID);
             preparedStatement.executeUpdate();
             var generatedKeys = preparedStatement.getGeneratedKeys();
             if (generatedKeys.next()) {

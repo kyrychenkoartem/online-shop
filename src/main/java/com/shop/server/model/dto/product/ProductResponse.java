@@ -14,6 +14,7 @@ import lombok.ToString;
 @ToString
 public class ProductResponse {
 
+    private Long id;
     private String name;
     private String description;
     private BigDecimal price;

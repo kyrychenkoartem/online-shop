@@ -13,13 +13,13 @@ public final class OrderSql {
 
     public static final String SAVE_SQL = """
             INSERT INTO orders (cart_id, users_id, created_at, closed_at, status)
-            VALUES (?, ?, now(), ?, ?)
+            VALUES (?, ?, now(), null, ?)
             """;
 
     public static final String UPDATE_SQL = """
             UPDATE orders
             SET 
-            closed_at = ?,
+            closed_at = now(),
             status = ?
             WHERE id = ?
             """;

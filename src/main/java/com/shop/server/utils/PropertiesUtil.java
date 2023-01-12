@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public final class PropertiesUtil {
 
     private static final Properties PROPERTIES = new Properties();
+    private static final String RESOURCE = "application.properties";
 
     static {
         loadProperties();
@@ -20,7 +21,7 @@ public final class PropertiesUtil {
     }
 
     private static void loadProperties() {
-        try (InputStream inputStream = PropertiesUtil.class.getClassLoader().getResourceAsStream("application.properties")) {
+        try (InputStream inputStream = PropertiesUtil.class.getClassLoader().getResourceAsStream(RESOURCE)) {
             PROPERTIES.load(inputStream);
         } catch (IOException e) {
             throw new RuntimeException(e);

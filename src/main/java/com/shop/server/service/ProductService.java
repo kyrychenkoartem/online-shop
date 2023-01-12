@@ -70,7 +70,7 @@ public class ProductService {
 
     public ProductResponse save(NewProductRequest productRequest) {
         log.info("[save] invoked with productRequest = [{}]", productRequest);
-        if (!checkAvailability(productRequest)) {
+        if (isProductExist(productRequest)) {
             log.error("[save] Product [{}] already exists", productRequest.getName());
             throw new BadRequestException(ErrorResponseStatusType.PRODUCT_ALREADY_EXISTS_EXCEPTION, productRequest.getName());
         }
@@ -145,15 +145,15 @@ public class ProductService {
         return INSTANCE;
     }
 
-    private boolean checkAvailability(NewProductRequest productRequest) {
+    private boolean isProductExist(NewProductRequest productRequest) {
         log.info("[checkAvailability] invoked with productRequest = [{}]", productRequest);
         ProductFilter filter = ProductFilter.builder().limit(LIMIT).offset(OFFSET).name(productRequest.getName())
                 .price(productRequest.getPrice()).category(productRequest.getCategory()).material(productRequest.getMaterial()).build();
         List<Product> products = productDao.findAll(filter, extractor);
         if (products.isEmpty()) {
-            return true;
+            return false;
         }
-        return products.stream()
+        return !products.stream()
                 .filter(product -> product.equals(productMapper.toEntity(productRequest)))
                 .toList().isEmpty();
     }

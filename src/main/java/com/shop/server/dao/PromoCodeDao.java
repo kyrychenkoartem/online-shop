@@ -22,8 +22,15 @@ public class PromoCodeDao implements Dao<Long, PromoCode> {
 
     @Override
     public PromoCode save(PromoCode promoCode) {
-        try (var connection = ConnectionPool.get();
-             var preparedStatement = connection.prepareStatement(PromoCodeSql.SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
+        try (var connection = ConnectionPool.get()) {
+            return save(promoCode, connection);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public PromoCode save(PromoCode promoCode, Connection connection) {
+        try (var preparedStatement = connection.prepareStatement(PromoCodeSql.SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, promoCode.getKey());
             preparedStatement.setInt(2, promoCode.getValue());
             preparedStatement.executeUpdate();

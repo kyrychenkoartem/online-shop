@@ -1,11 +1,13 @@
 package com.shop.server.mapper;
 
+import com.shop.server.exception.NotFoundException;
 import com.shop.server.model.dto.product.NewProductRequest;
 import com.shop.server.model.dto.product.ProductResponse;
 import com.shop.server.model.dto.product.UpdateProductPriceRequest;
 import com.shop.server.model.dto.product.UpdateProductQuantitiesRequest;
 import com.shop.server.model.dto.product.UpdateProductRequest;
 import com.shop.server.model.entity.Product;
+import com.shop.server.model.type.ErrorResponseStatusType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
@@ -21,9 +23,10 @@ public class ProductMapper {
 
     public ProductResponse toResponse(Product product) {
         if (ObjectUtils.isEmpty(product)) {
-            return null;
+            throw new NotFoundException(ErrorResponseStatusType.ARGUMENT_NOT_FOUND_EXCEPTION, product);
         }
         return ProductResponse.builder()
+                .id(product.getId())
                 .name(product.getName())
                 .description(product.getDescription())
                 .price(product.getPrice())
@@ -34,7 +37,7 @@ public class ProductMapper {
 
     public Product toEntity(NewProductRequest request) {
         if (ObjectUtils.isEmpty(request)) {
-            return null;
+            throw new NotFoundException(ErrorResponseStatusType.ARGUMENT_NOT_FOUND_EXCEPTION, request);
         }
         return Product.builder()
                 .name(request.getName())
@@ -48,7 +51,7 @@ public class ProductMapper {
 
     public Product toEntity(UpdateProductRequest request, Product product) {
         if (ObjectUtils.isEmpty(request)) {
-            return null;
+            throw new NotFoundException(ErrorResponseStatusType.ARGUMENTS_NOT_FOUND_EXCEPTION);
         }
         product.setName(request.getName());
         product.setDescription(request.getDescription());
@@ -61,7 +64,7 @@ public class ProductMapper {
 
     public Product toEntity(UpdateProductPriceRequest request, Product product) {
         if (ObjectUtils.isEmpty(request)) {
-            return null;
+            throw new NotFoundException(ErrorResponseStatusType.ARGUMENTS_NOT_FOUND_EXCEPTION);
         }
         product.setPrice(request.getPrice());
         return product;
@@ -69,18 +72,9 @@ public class ProductMapper {
 
     public Product toEntity(UpdateProductQuantitiesRequest request, Product product) {
         if (ObjectUtils.isEmpty(request)) {
-            return null;
+            throw new NotFoundException(ErrorResponseStatusType.ARGUMENTS_NOT_FOUND_EXCEPTION);
         }
         product.setQuantities(request.getQuantities());
         return product;
-    }
-
-    public Product toEntity(ProductResponse response) {
-        if (ObjectUtils.isEmpty(response)) {
-            return null;
-        }
-        return Product.builder()
-
-                .build();
     }
 }

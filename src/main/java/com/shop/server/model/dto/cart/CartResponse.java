@@ -15,6 +15,7 @@ import lombok.ToString;
 @ToString
 public class CartResponse {
 
+    private Long id;
     private List<ProductItemResponse> productItem;
     private BigDecimal price;
     private PromoCodeResponse promoCode;

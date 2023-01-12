@@ -8,7 +8,7 @@ VALUES ('admin', 'admin@gmail.com', 'testPassword', '1999-01-08', 'admin', 'admi
         'admin@gmail.com', null, null);
 
 INSERT INTO promo_code (key, value)
-VALUES ('key1', 10),
+VALUES ('default', 0),
        ('key2', 15),
        ('key3', 20),
        ('key4', 25),
@@ -249,35 +249,6 @@ VALUES (1, '1234567890234567', '10/27', 'Bank1', '123', 'DEBIT'),
        (2, '3456789034567890', '11/27', 'Bank2', '456', 'CREDIT'),
        (3, '9876543219876543', '12/27', 'Bank3', '789', 'GIFT');
 
-INSERT INTO cart (price, promo_code_id)
-VALUES (252.00, 1),
-       (170.00, 2),
-       (128.00, 3),
-       (173.25, 4);
-
-INSERT INTO product_item (product_id, count, cart_id)
-VALUES (1, 2, 1),
-       (21, 2, 2),
-       (41, 2, 3),
-       (61, 1, 1),
-       (80, 3, 4);
-
-INSERT INTO orders (cart_id, users_id, created_at, closed_at, status)
-VALUES (1, 1, now(), null, 'PROCESSING'),
-       (2, 2, now(), null, 'ON_HOLD'),
-       (3, 3, now(), now() + interval '1 hour', 'CANCELED'),
-       (4, 1, now(), now() + interval '2 hour', 'COMPLETED');
-
-INSERT INTO payment (orders_id, bank_card_id, payment_time, payment_status)
-VALUES ((SELECT id FROM orders WHERE status = 'COMPLETED'), (SELECT bc.id
-                                                             FROM orders
-                                                                      JOIN users u on orders.users_id = u.id
-                                                                      JOIN bank_card bc on u.id = bc.users_id
-                                                             WHERE status = 'COMPLETED'), now(), 'COMPLETED');
-
-INSERT INTO delivery_address (orders_id, address, city, province, postal_code)
-VALUES ((SELECT id FROM orders WHERE status = 'COMPLETED'), 'testAddress', 'testCity', 'testProvince',
-        'testPostalCode');
 
 
 

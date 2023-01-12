@@ -11,6 +11,7 @@ import com.shop.server.model.dto.promo_code.PromoCodeUpdateRequest;
 import com.shop.server.model.entity.PromoCode;
 import com.shop.server.model.type.ErrorResponseStatusType;
 import com.shop.server.utils.code_generator.PromoCodeGenerator;
+import java.sql.Connection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,10 +29,10 @@ public class PromoCodeService {
     private final PromoCodeExtractor extractor = PromoCodeExtractor.getExtractor();
     private final PromoCodeMapper codeMapper = PromoCodeMapper.getInstance();
 
-    public PromoCodeResponse save(PromoCodeRequest request) {
+    public PromoCodeResponse save(PromoCodeRequest request, Connection connection) {
         log.info("[save] invoked with request = [{}]", request);
         PromoCode promoCode = codeMapper.toEntity(generatePromoCode(request));
-        promoCodeDao.save(promoCode);
+        promoCodeDao.save(promoCode, connection);
         return codeMapper.toResponse(promoCode);
     }
 

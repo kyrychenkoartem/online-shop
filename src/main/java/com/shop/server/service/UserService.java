@@ -3,6 +3,7 @@ package com.shop.server.service;
 import com.shop.server.dao.UserDao;
 import com.shop.server.exception.BadRequestException;
 import com.shop.server.exception.NotFoundException;
+import com.shop.server.exception.ValidationException;
 import com.shop.server.mapper.UserMapper;
 import com.shop.server.mapper.extractor.UserExtractor;
 import com.shop.server.model.dto.user.UserRegistrationRequest;
@@ -12,6 +13,7 @@ import com.shop.server.model.entity.User;
 import com.shop.server.model.type.ErrorResponseStatusType;
 import com.shop.server.service.encoder.PasswordEncoder;
 import com.shop.server.service.encoder.PasswordEncoderService;
+import com.shop.server.validator.impl.UserRegistrationRequestValidator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -29,6 +31,7 @@ public class UserService {
     private final UserExtractor extractor = UserExtractor.getExtractor();
     private final UserMapper userMapper = UserMapper.getInstance();
     private final PasswordEncoder passwordEncoder = new PasswordEncoderService();
+    private final UserRegistrationRequestValidator requestValidator = UserRegistrationRequestValidator.getInstance();
 
 
     public UserResponse getById(Long userId) {
@@ -60,8 +63,22 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    public Optional<UserResponse> login(String email, String password) {
+        log.info("[login] invoked with email = [{}] and password = [{}]", email, password);
+        Optional<User> optionalUser = userDao.findByEmailAndPassword(email, password, extractor);
+        if (optionalUser.isEmpty()) {
+            throw new NotFoundException(ErrorResponseStatusType.USER_NOT_FOUND_EXCEPTION, email);
+        }
+        return userDao.findByEmailAndPassword(email, password, extractor)
+                .map(userMapper::toResponse);
+    }
+
     public UserResponse save(UserRegistrationRequest request) {
         log.info("[save] invoked with request = [{}]", request);
+        var validationResult = requestValidator.isValid(request);
+        if (!validationResult.isValid()) {
+            throw new ValidationException(validationResult.getErrors());
+        }
         Optional<User> optionalUser = userDao.findByEmail(request.getEmail(), extractor);
         if (optionalUser.isPresent()) {
             log.error("[save] User [{}] already exists", request.getEmail());
@@ -93,7 +110,7 @@ public class UserService {
         userDao.delete(userId);
     }
 
-    public UserService getInstance() {
+    public static UserService getInstance() {
         return INSTANCE;
     }
 }
