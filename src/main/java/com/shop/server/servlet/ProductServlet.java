@@ -13,6 +13,10 @@ import java.io.IOException;
 import java.util.Optional;
 import org.apache.commons.lang3.ObjectUtils;
 
+import static com.shop.server.utils.CookiesHelper.CART_ID;
+import static com.shop.server.utils.CookiesHelper.PRODUCT;
+import static com.shop.server.utils.CookiesHelper.PRODUCTS;
+
 @WebServlet(UrlPath.PRODUCTS)
 public class ProductServlet extends HttpServlet {
 
@@ -20,14 +24,14 @@ public class ProductServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setAttribute("products", productService.getAll());
+        req.setAttribute(PRODUCTS, productService.getAll());
         if (CookieUtils.isCartIdCookieNotEmpty(req)) {
             var cartId = CookieUtils.getCartId(req);
-            req.setAttribute("cartId", cartId);
+            req.setAttribute(CART_ID, cartId);
         }
         if (ObjectUtils.isNotEmpty(req.getParameter("productId"))) {
             var productId = Optional.of(Long.valueOf(req.getParameter("productId")));
-            req.setAttribute("product", productService.getById(productId.get()));
+            req.setAttribute(PRODUCT, productService.getById(productId.get()));
             req.getRequestDispatcher(JspHelper.get("product"))
                     .forward(req, resp);
         } else {

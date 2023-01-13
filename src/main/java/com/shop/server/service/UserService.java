@@ -65,10 +65,6 @@ public class UserService {
 
     public Optional<UserResponse> login(String email, String password) {
         log.info("[login] invoked with email = [{}] and password = [{}]", email, password);
-        Optional<User> optionalUser = userDao.findByEmailAndPassword(email, password, extractor);
-        if (optionalUser.isEmpty()) {
-            throw new NotFoundException(ErrorResponseStatusType.USER_NOT_FOUND_EXCEPTION, email);
-        }
         return userDao.findByEmailAndPassword(email, password, extractor)
                 .map(userMapper::toResponse);
     }

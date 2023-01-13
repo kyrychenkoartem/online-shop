@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.Optional;
 import org.apache.commons.lang3.ObjectUtils;
 
+import static com.shop.server.utils.CookiesHelper.CART_RESPONSE;
 import static com.shop.server.utils.UrlPath.CART;
 import static com.shop.server.utils.UrlPath.PRODUCTS;
 
@@ -25,7 +26,7 @@ public class CartServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (CookieUtils.isCartIdCookieNotEmpty(req)) {
             var cartId = CookieUtils.getCartId(req);
-            req.setAttribute("cartResponse", cartService.findById(cartId));
+            req.setAttribute(CART_RESPONSE, cartService.findById(cartId));
             req.getRequestDispatcher(JspHelper.get("cart"))
                     .forward(req, resp);
         } else {

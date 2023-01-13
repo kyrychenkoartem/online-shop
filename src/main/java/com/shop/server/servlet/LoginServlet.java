@@ -48,9 +48,6 @@ public class LoginServlet extends HttpServlet {
         CookieUtils.setUserCookie(user, req);
         var prevPage = req.getHeader("referer");
         if (ObjectUtils.isNotEmpty(req.getSession().getAttribute("targetPage"))) {
-//            resp.setStatus(307); //this makes the redirection keep your requesting method as is.
-//            resp.addHeader("Location", (String) req.getSession().getAttribute("targetPage"));
-//            resp.sendRedirect((String) req.getSession().getAttribute("targetPage"));
             req.getRequestDispatcher((String) req.getSession().getAttribute("targetPage"))
                     .forward(req, resp);
         } else {

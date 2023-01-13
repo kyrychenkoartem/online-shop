@@ -4,6 +4,7 @@ import com.shop.server.model.type.CardType;
 import com.shop.server.service.OrderService;
 import com.shop.server.utils.CookieUtils;
 import com.shop.server.utils.JspHelper;
+import com.shop.server.utils.UrlPath;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -11,17 +12,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static com.shop.server.utils.CookiesHelper.CARDS;
+import static com.shop.server.utils.CookiesHelper.ORDER;
 import static com.shop.server.utils.UrlPath.LOGIN;
-import static com.shop.server.utils.UrlPath.ORDER;
+
 import static com.shop.server.utils.UrlPath.PRODUCTS;
 
-@WebServlet(ORDER)
+@WebServlet(UrlPath.ORDER)
 public class OrderServlet extends HttpServlet {
     private final OrderService orderService = OrderService.getInstance();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setAttribute("cards", CardType.values());
+        req.setAttribute(CARDS, CardType.values());
         req.getRequestDispatcher(JspHelper.get("order"))
                 .forward(req, resp);
     }
@@ -34,7 +37,7 @@ public class OrderServlet extends HttpServlet {
                 var cartId = CookieUtils.getCartId(req);
                 var order = orderService.save(cartId, user);
                 CookieUtils.setOrderCookie(order, req);
-                req.setAttribute("order", order);
+                req.setAttribute(ORDER, order);
                 doGet(req, resp);
             } else {
                 resp.sendRedirect(PRODUCTS);

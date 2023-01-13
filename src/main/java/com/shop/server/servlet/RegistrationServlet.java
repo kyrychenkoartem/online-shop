@@ -13,6 +13,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static com.shop.server.utils.CookiesHelper.ERRORS;
+import static com.shop.server.utils.CookiesHelper.GENDERS;
+import static com.shop.server.utils.CookiesHelper.ROLES;
 import static com.shop.server.utils.UrlPath.LOGIN;
 import static com.shop.server.utils.UrlPath.REGISTRATION;
 
@@ -23,8 +26,8 @@ public class RegistrationServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setAttribute("roles", Role.values());
-        req.setAttribute("genders", Gender.values());
+        req.setAttribute(ROLES, Role.values());
+        req.setAttribute(GENDERS, Gender.values());
         req.getRequestDispatcher(JspHelper.get("registration"))
                 .forward(req, resp);
     }
@@ -45,7 +48,7 @@ public class RegistrationServlet extends HttpServlet {
             userService.save(userRegistrationRequest);
             resp.sendRedirect(LOGIN);
         } catch (ValidationException exception) {
-            req.setAttribute("errors", exception.getErrors());
+            req.setAttribute(ERRORS, exception.getErrors());
             doGet(req, resp);
         }
     }

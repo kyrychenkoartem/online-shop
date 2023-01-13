@@ -18,6 +18,8 @@ public class ConnectionPool {
     private static final String USERNAME_KEY = "db.username";
     private static final String PASSWORD_KEY = "db.password";
     private static final String POOL_SIZE_KEY = "db.pool.size";
+    private static final String DRIVER = "org.postgresql.Driver";
+    private static final String CLOSE = "close";
     private static BlockingQueue<Connection> pool;
     private static final Integer DEFAULT_POOL_SIZE = 10;
     private static List<Connection> sourceConnection;
@@ -58,7 +60,7 @@ public class ConnectionPool {
 
     private static void loadDriver() {
         try {
-            Class.forName("org.postgresql.Driver");
+            Class.forName(DRIVER);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -73,7 +75,7 @@ public class ConnectionPool {
             var connection = open();
             var proxyConnection = (Connection)
                     Proxy.newProxyInstance(ConnectionPool.class.getClassLoader(), new Class[]{Connection.class},
-                            (proxy, method, args) -> method.getName().equals("close")
+                            (proxy, method, args) -> method.getName().equals(CLOSE)
                                     ? pool.add((Connection) proxy)
                                     : method.invoke(connection, args));
             pool.add(proxyConnection);

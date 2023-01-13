@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static com.shop.server.utils.CookiesHelper.ERRORS;
+import static com.shop.server.utils.CookiesHelper.ORDER;
 import static com.shop.server.utils.UrlPath.LOGIN;
 import static com.shop.server.utils.UrlPath.PAY;
 import static com.shop.server.utils.UrlPath.PRODUCTS;
@@ -50,14 +52,13 @@ public class PayServlet extends HttpServlet {
                 var orderId = CookieUtils.getOrderId(req);
                 try {
                     payService.finishPayment(orderId, userId, addressRequest, cardRequest);
-                    req.setAttribute("order", orderId);
+                    req.setAttribute(ORDER, orderId);
                     CookieUtils.resetCookie(req);
                     doGet(req, resp);
                 } catch (ValidationException exception) {
-                    req.setAttribute("errors", exception.getErrors());
+                    req.setAttribute(ERRORS, exception.getErrors());
                     req.getRequestDispatcher(JspHelper.get("order"))
                             .forward(req, resp);
-//                    doGet(req, resp);
                 }
             } else {
                 resp.sendRedirect(PRODUCTS);

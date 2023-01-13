@@ -28,7 +28,6 @@ public class AuthorizationFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         var uri = ((HttpServletRequest) servletRequest).getRequestURI();
-        var requestMethod = ((HttpServletRequest) servletRequest).getMethod();
         if (isUserLoggedIn(servletRequest)) {
             filterChain.doFilter(servletRequest, servletResponse);
         } else if (isPublicPath(uri)) {
@@ -37,7 +36,6 @@ public class AuthorizationFilter implements Filter {
             var prevPage = ((HttpServletRequest) servletRequest).getHeader("referer");
             var userCookieNotEmpty = CookieUtils.isUserCookieNotEmpty(((HttpServletRequest) servletRequest));
             ((HttpServletRequest) servletRequest).getSession().setAttribute("targetPage", uri);
-            ((HttpServletRequest) servletRequest).getSession().setAttribute("targetMethod", requestMethod);
             ((HttpServletResponse) servletResponse).sendRedirect(!userCookieNotEmpty ? LOGIN : prevPage);
         }
     }
