@@ -3,17 +3,17 @@ package com.shop.server.utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PropertiesUtil {
 
     private static final Properties PROPERTIES = new Properties();
+    private static final String RESOURCE = "application.properties";
 
     static {
         loadProperties();
-    }
-
-
-    private PropertiesUtil() {
     }
 
     public static String get(String key) {
@@ -21,12 +21,10 @@ public final class PropertiesUtil {
     }
 
     private static void loadProperties() {
-        try (InputStream inputStream = PropertiesUtil.class.getClassLoader().getResourceAsStream("application.properties")) {
+        try (InputStream inputStream = PropertiesUtil.class.getClassLoader().getResourceAsStream(RESOURCE)) {
             PROPERTIES.load(inputStream);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
-
 }

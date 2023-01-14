@@ -9,7 +9,6 @@ import com.shop.server.utils.sql.OrderSql;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,8 +26,7 @@ public class OrderDao implements Dao<Long, Order> {
              var preparedStatement = connection.prepareStatement(OrderSql.SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setLong(1, order.getCart().getId());
             preparedStatement.setLong(2, order.getUser().getId());
-            preparedStatement.setTimestamp(3, Timestamp.valueOf(order.getClosedAt()));
-            preparedStatement.setString(4, order.getStatus().name());
+            preparedStatement.setString(3, order.getStatus().name());
             preparedStatement.executeUpdate();
             var generatedKeys = preparedStatement.getGeneratedKeys();
             if (generatedKeys.next()) {
@@ -42,11 +40,17 @@ public class OrderDao implements Dao<Long, Order> {
 
     @Override
     public void update(Order order) {
-        try (var connection = ConnectionPool.get();
-             var preparedStatement = connection.prepareStatement(OrderSql.UPDATE_SQL)) {
-            preparedStatement.setTimestamp(1, Timestamp.valueOf(order.getClosedAt()));
-            preparedStatement.setString(2, order.getStatus().name());
-            preparedStatement.setLong(3, order.getId());
+        try (var connection = ConnectionPool.get()) {
+            update(order, connection);
+        } catch (SQLException e) {
+            throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);
+        }
+    }
+
+    public void update(Order order, Connection connection) {
+        try (var preparedStatement = connection.prepareStatement(OrderSql.UPDATE_SQL)) {
+            preparedStatement.setString(1, order.getStatus().name());
+            preparedStatement.setLong(2, order.getId());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             throw new DaoException(ErrorResponseStatusType.DAO_EXCEPTION, e);

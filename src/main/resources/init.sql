@@ -30,13 +30,6 @@ CREATE TABLE IF NOT EXISTS product
     material    VARCHAR(64)  NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS product_item
-(
-    id         BIGSERIAL PRIMARY KEY,
-    product_id BIGSERIAL REFERENCES product (id) ON DELETE CASCADE,
-    count      INT NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS promo_code
 (
     id    BIGSERIAL PRIMARY KEY,
@@ -46,10 +39,17 @@ CREATE TABLE IF NOT EXISTS promo_code
 
 CREATE TABLE IF NOT EXISTS cart
 (
-    id              BIGSERIAL PRIMARY KEY,
-    product_item_id BIGSERIAL REFERENCES product_item (id) ON DELETE CASCADE,
-    price           NUMERIC NOT NULL,
-    promo_code_id   BIGSERIAL REFERENCES promo_code (id) ON DELETE CASCADE
+    id            BIGSERIAL PRIMARY KEY,
+    price         NUMERIC NOT NULL,
+    promo_code_id BIGSERIAL REFERENCES promo_code (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS product_item
+(
+    id         BIGSERIAL PRIMARY KEY,
+    product_id BIGSERIAL REFERENCES product (id) ON DELETE CASCADE,
+    count      INT NOT NULL,
+    cart_id    BIGSERIAL REFERENCES cart (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS orders
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS bank_card
 CREATE TABLE IF NOT EXISTS delivery_address
 (
     id          BIGSERIAL PRIMARY KEY,
-    orders_id   BIGSERIAL UNIQUE REFERENCES orders (id) ON DELETE CASCADE,
+    orders_id   BIGSERIAL REFERENCES orders (id) ON DELETE CASCADE,
     address     VARCHAR(64) NOT NULL,
     city        VARCHAR(32) NOT NULL,
     province    VARCHAR(32) NOT NULL,
