@@ -7,6 +7,7 @@ public class UrlPath {
 
     public static final String ALL_PATHS = "/*";
     public static final String LOGIN = "/login";
+    public static final String ANY_LOGIN = "^.+\\/login.*$";
     public static final String LOGOUT = "/logout";
     public static final String LOGIN_ERROR_EMAIL = "/login?error&email=";
     public static final String REGISTRATION = "/registration";

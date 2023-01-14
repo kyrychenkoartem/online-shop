@@ -13,6 +13,7 @@ import java.io.IOException;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.ObjectUtils;
 
+import static com.shop.server.utils.UrlPath.ANY_LOGIN;
 import static com.shop.server.utils.UrlPath.LOGIN;
 import static com.shop.server.utils.UrlPath.LOGIN_ERROR_EMAIL;
 import static com.shop.server.utils.UrlPath.PRODUCTS;
@@ -50,8 +51,10 @@ public class LoginServlet extends HttpServlet {
         if (ObjectUtils.isNotEmpty(req.getSession().getAttribute("targetPage"))) {
             req.getRequestDispatcher((String) req.getSession().getAttribute("targetPage"))
                     .forward(req, resp);
+        } else if (prevPage.matches(ANY_LOGIN)) {
+            resp.sendRedirect(PRODUCTS);
         } else {
-            resp.sendRedirect(prevPage != null ? prevPage : PRODUCTS);
+            resp.sendRedirect(prevPage);
         }
     }
 

@@ -7,7 +7,7 @@
         </form>
     </c:if>
     <c:if test="${ empty sessionScope.user}">
-        <form action="${pageContext.request.contextPath}/login" method="post">
+        <form action="${pageContext.request.contextPath}/login" method="get">
             <button type="submit">Login</button>
         </form>
     </c:if>
